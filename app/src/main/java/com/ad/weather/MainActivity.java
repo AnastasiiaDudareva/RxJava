@@ -19,7 +19,6 @@ import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
 import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
@@ -93,24 +92,13 @@ public class MainActivity extends AppCompatActivity {
             WorldWeatherRest.weatherDataApi.getWeather(sb.toString())
                     .subscribeOn(Schedulers.io())                           //в каком потоке выполнять Schedulers.ij - пул потоков
                     .observeOn(AndroidSchedulers.mainThread())              //в каком потоке просматривать
-                    .subscribeWith(new DisposableObserver<WeatherItem.WeatherResult>() {        //возврвщает слушателя
-
-                        @Override
-                        public void onNext(WeatherItem.WeatherResult value) {
-                            progressBar.setVisibility(View.INVISIBLE);
-                            currentWeather = value.toWeatherItem();
-                            displayWeather();
-                        }
-
-                        @Override
-                        public void onError(Throwable e) {
-                            progressBar.setVisibility(View.INVISIBLE);
-                        }
-
-                        @Override
-                        public void onComplete() {
-                            dispose();
-                        }
+                    .subscribe(weatherResult -> {
+                        currentWeather = weatherResult.toWeatherItem();
+                        displayWeather();
+                    }, throwable -> {
+                        progressBar.setVisibility(View.INVISIBLE);
+                    }, () -> {
+                        progressBar.setVisibility(View.INVISIBLE);
                     });
         }
     }

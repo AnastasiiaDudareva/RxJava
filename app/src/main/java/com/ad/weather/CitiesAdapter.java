@@ -6,8 +6,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.jakewharton.rxbinding.view.RxView;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import io.reactivex.Observable;
+import io.reactivex.subjects.PublishSubject;
 
 /**
  * Created by anastasiia on 21.12.17.
@@ -15,10 +20,11 @@ import java.util.List;
 
 public class CitiesAdapter extends RecyclerView.Adapter<CitiesAdapter.ViewHolder> {
     private List<CityItem> items = new ArrayList<>();
-    private OnItemClickListener onItemClickListener;
 
-    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
-        this.onItemClickListener = onItemClickListener;
+    private PublishSubject<CityItem> clickSubject = PublishSubject.create();
+
+    public Observable<CityItem> getItemClickSignal() {
+        return clickSubject;
     }
 
     public void setItems(List<CityItem> items) {
@@ -31,8 +37,7 @@ public class CitiesAdapter extends RecyclerView.Adapter<CitiesAdapter.ViewHolder
 
         return new CitiesAdapter.ViewHolder(
                 LayoutInflater.from(parent.getContext()).inflate(R.layout.rv_item_city,
-                        parent,
-                        false));
+                        parent, false));
     }
 
     @Override
@@ -60,19 +65,13 @@ public class CitiesAdapter extends RecyclerView.Adapter<CitiesAdapter.ViewHolder
         public void bind(final CityItem item) {
             cityName.setText(item.areaName);
             countryName.setText(item.country);
-            if (onItemClickListener != null) {
-                itemView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        onItemClickListener.onItemClick(item);
-                    }
-                });
-            }
-        }
-    }
+            RxView.clicks(itemView)
+                    .map(aVoid -> item)
+                    .subscribe(cityItem -> {
+                        clickSubject.onNext(cityItem);
+                    });
 
-    interface OnItemClickListener {
-        void onItemClick(CityItem item);
+        }
     }
 
 }

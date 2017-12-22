@@ -5,9 +5,11 @@ buildscript {
     repositories {
         google()
         jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'me.tatarka:gradle-retrolambda:3.7.0'
         
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -24,8 +26,16 @@ buildscript {
 
         //version for dependency libs
         supportLibVersion = "27.0.2"
-        googleServicesVersion = "11.6.2"
+        googleServicesVersion = "11.8.0"
     }
+//
+//    retrolambda {
+//        javaVersion JavaVersion.VERSION_1_6
+//        jvmArgs '-arg1', '-arg2'
+//        defaultMethods false
+//        incremental true
+//    }
+
 }
 
 allprojects {
@@ -33,6 +43,7 @@ allprojects {
         google()
         jcenter()
     }
+
 }
 
 task clean(type: Delete) {
