@@ -93,11 +93,10 @@ public class MainActivity extends AppCompatActivity {
                     .subscribeOn(Schedulers.io())                           //в каком потоке выполнять Schedulers.ij - пул потоков
                     .observeOn(AndroidSchedulers.mainThread())              //в каком потоке просматривать
                     .subscribe(weatherResult -> {
+                        progressBar.setVisibility(View.INVISIBLE);
                         currentWeather = weatherResult.toWeatherItem();
                         displayWeather();
                     }, throwable -> {
-                        progressBar.setVisibility(View.INVISIBLE);
-                    }, () -> {
                         progressBar.setVisibility(View.INVISIBLE);
                     });
         }

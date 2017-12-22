@@ -24,6 +24,7 @@ import com.jakewharton.rxbinding.widget.RxTextView;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 
@@ -37,7 +38,6 @@ public class CitySearchActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private View emptyView;
     private CitiesAdapter adapter;
-    private CompositeDisposable disposables = new CompositeDisposable();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,8 +82,7 @@ public class CitySearchActivity extends AppCompatActivity {
 
     private void searchNearest() {
         LocationHelper locationHelper = new LocationHelper(this);
-        disposables.add(locationHelper
-                .getLastKnownLocation()
+        locationHelper.getLastKnownLocation()
                 .map(location -> {
                     if (location != null) {
                         return new StringBuilder(location.getLatitude() + "")
@@ -92,24 +91,13 @@ public class CitySearchActivity extends AppCompatActivity {
                     }
                     return "";
                 })
-                .subscribeWith(new DisposableObserver<String>() {
-                    @Override
-                    public void onNext(String value) {
-                        if (!TextUtils.isEmpty(value)) {
-                            search(value);
-                        }
+                .subscribe(s -> {
+                    if (!TextUtils.isEmpty(s)) {
+                        search(s);
                     }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        Log.e("onError", e.getMessage());
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                }));
+                }, throwable -> {
+                    Log.e("onError", throwable.getMessage());
+                });
     }
 
     @Override
@@ -163,6 +151,7 @@ public class CitySearchActivity extends AppCompatActivity {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(areaResult -> {
+                            progress.setVisibility(View.INVISIBLE);
                             adapter.setItems(areaResult.toCityItemList());
                             emptyView.setVisibility(adapter.getItemCount() > 0 ? View.GONE : View.VISIBLE);
                         },
@@ -170,9 +159,6 @@ public class CitySearchActivity extends AppCompatActivity {
                             progress.setVisibility(View.INVISIBLE);
                             emptyView.setVisibility(View.VISIBLE);
                             Log.e("onError", throwable.getMessage());
-                        },
-                        () -> {
-                            progress.setVisibility(View.INVISIBLE);
                         });
 
     }
@@ -180,6 +166,5 @@ public class CitySearchActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        disposables.dispose();
     }
 }
