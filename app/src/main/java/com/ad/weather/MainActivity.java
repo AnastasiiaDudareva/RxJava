@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -86,6 +87,14 @@ public class MainActivity extends AppCompatActivity {
     private void updateCurrentWeather() {
         progressBar.setVisibility(View.VISIBLE);
         if (currentCity != null && currentCity.location != null) {
+            WeatherItem localData = DBHelper.getWeatherForCity(currentCity);
+            if (localData != null) {
+                progressBar.setVisibility(View.INVISIBLE);
+                currentWeather = localData;
+                displayWeather();
+                return;
+            }
+            Log.e("Make api request!", "call");
             StringBuilder sb = new StringBuilder(currentCity.location.getLatitude() + "")
                     .append(",")
                     .append(currentCity.location.getLongitude());
@@ -95,6 +104,7 @@ public class MainActivity extends AppCompatActivity {
                     .subscribe(weatherResult -> {
                         progressBar.setVisibility(View.INVISIBLE);
                         currentWeather = weatherResult.toWeatherItem();
+                        DBHelper.saveWeatherForCity(currentWeather, currentCity);
                         displayWeather();
                     }, throwable -> {
                         progressBar.setVisibility(View.INVISIBLE);

@@ -1,8 +1,11 @@
 package com.ad.weather;
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.PrimaryKey;
 import android.location.Location;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
 import java.util.ArrayList;
@@ -11,22 +14,31 @@ import java.util.List;
 /**
  * Created by anastasiia on 21.12.17.
  */
-
+@Entity
 public class CityItem implements Parcelable {
-    String areaName = "";
-    String country = "";
-    Location location = new Location("");
+    @NonNull
+    @PrimaryKey
+    public String cityItemId = "";
+    public String areaName = "";
+    public String country = "";
+    public Location location = new Location("");
 
     public CityItem(String areaName, String country, Location location) {
         this.areaName = areaName;
         this.country = country;
         this.location = location;
+        this.cityItemId = new StringBuilder(areaName)
+                .append("_")
+                .append(location.getLatitude())
+                .append("_")
+                .append(location.getLongitude()).toString();
     }
 
     protected CityItem(Parcel in) {
         areaName = in.readString();
         country = in.readString();
         location = in.readParcelable(Location.class.getClassLoader());
+        cityItemId = in.readString();
     }
 
     public static final Creator<CityItem> CREATOR = new Creator<CityItem>() {
@@ -51,6 +63,7 @@ public class CityItem implements Parcelable {
         dest.writeString(areaName);
         dest.writeString(country);
         dest.writeParcelable(location, flags);
+        dest.writeString(cityItemId);
     }
 
     class AreaResult {

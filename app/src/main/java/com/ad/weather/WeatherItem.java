@@ -1,17 +1,31 @@
 package com.ad.weather;
 
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.ForeignKey;
+import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
+
 import java.util.List;
 
 /**
  * Created by anastasiia on 21.12.17.
  */
-
+@Entity(foreignKeys = @ForeignKey(
+        entity = CityItem.class,
+        parentColumns = "cityItemId",
+        childColumns = "cityItemId"))
 public class WeatherItem {
-    String lastObservedUtc;
-    int tempt;
-    int feelsLike;
-    String weatherIconUrl;
-    String weatherDesc;
+    //    @PrimaryKey(autoGenerate = true)
+    @NonNull
+    @PrimaryKey
+    public String cityItemId=""; // this ID points to a CityItem
+    public int weatherId = 0;
+    public String lastObservedUtc;
+    public int tempt;
+    public int feelsLike;
+    public String weatherIconUrl;
+    public String weatherDesc;
+    public long timeCreatedMillis;
 
 
     public WeatherItem(String lastObservedUtc, int tempt, int feelsLike, String weatherIconUrl, String weatherDesc) {
@@ -20,6 +34,7 @@ public class WeatherItem {
         this.feelsLike = feelsLike;
         this.weatherIconUrl = weatherIconUrl;
         this.weatherDesc = weatherDesc;
+        this.timeCreatedMillis = System.currentTimeMillis();
     }
 
     class WeatherResult {
