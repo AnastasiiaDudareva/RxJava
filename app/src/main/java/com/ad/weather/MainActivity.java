@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.ad.weather.database.DBHelper;
 import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -80,36 +81,48 @@ public class MainActivity extends AppCompatActivity {
             CityItem received = data.getParcelableExtra(CitySearchActivity.SELECTED_CITY_ITEM);
             if (received != null)
                 currentCity = received;
-            updateCurrentWeather();
+            getCurrentWeather();
+        }
+    }
+
+    private void getCurrentWeather() {
+        progressBar.setVisibility(View.VISIBLE);
+        if (currentCity != null && currentCity.location != null) {
+            DBHelper.getInstance().getWeatherForCity(currentCity)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(weatherItem -> {
+                        progressBar.setVisibility(View.INVISIBLE);
+                        currentWeather = weatherItem;
+                        displayWeather();
+                    }, throwable -> {
+                        updateCurrentWeather();
+                    });
+
+
         }
     }
 
     private void updateCurrentWeather() {
-        progressBar.setVisibility(View.VISIBLE);
-        if (currentCity != null && currentCity.location != null) {
-            WeatherItem localData = DBHelper.getWeatherForCity(currentCity);
-            if (localData != null) {
-                progressBar.setVisibility(View.INVISIBLE);
-                currentWeather = localData;
-                displayWeather();
-                return;
-            }
-            Log.e("Make api request!", "call");
-            StringBuilder sb = new StringBuilder(currentCity.location.getLatitude() + "")
-                    .append(",")
-                    .append(currentCity.location.getLongitude());
-            WorldWeatherRest.weatherDataApi.getWeather(sb.toString())
-                    .subscribeOn(Schedulers.io())                           //в каком потоке выполнять Schedulers.ij - пул потоков
-                    .observeOn(AndroidSchedulers.mainThread())              //в каком потоке просматривать
-                    .subscribe(weatherResult -> {
-                        progressBar.setVisibility(View.INVISIBLE);
-                        currentWeather = weatherResult.toWeatherItem();
-                        DBHelper.saveWeatherForCity(currentWeather, currentCity);
-                        displayWeather();
-                    }, throwable -> {
-                        progressBar.setVisibility(View.INVISIBLE);
-                    });
-        }
+        StringBuilder sb = new StringBuilder(currentCity.location.getLatitude() + "")
+                .append(",")
+                .append(currentCity.location.getLongitude());
+        WorldWeatherRest.weatherDataApi.getWeather(sb.toString())
+                .subscribeOn(Schedulers.io())                           //в каком потоке выполнять Schedulers.ij - пул потоков
+                .observeOn(AndroidSchedulers.mainThread())              //в каком потоке просматривать
+                .subscribe(weatherResult -> {
+                    Log.e("Make api request!", "call");
+                    progressBar.setVisibility(View.INVISIBLE);
+                    currentWeather = weatherResult.toWeatherItem();
+                    DBHelper.getInstance()
+                            .saveWeatherForCity(currentWeather, currentCity)
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe();
+                    displayWeather();
+                }, throwable1 -> {
+                    progressBar.setVisibility(View.INVISIBLE);
+                });
     }
 
     private void displayWeather() {

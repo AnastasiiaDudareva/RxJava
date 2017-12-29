@@ -1,4 +1,4 @@
-package com.ad.weather;
+package com.ad.weather.database;
 
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Delete;
@@ -6,7 +6,12 @@ import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
 
+import com.ad.weather.CityItem;
+
 import java.util.List;
+
+import io.reactivex.Completable;
+import io.reactivex.Maybe;
 
 
 /**
@@ -22,12 +27,8 @@ public interface CityDao {
     void insertAll(CityItem... cityItems);
 
     @Delete
-    void delete(CityItem cityItem);
+    int delete(CityItem cityItem);
 
     @Query("SELECT * FROM CityItem")
-    List<CityItem> getAllPeople();
-
-//    @Query("SELECT * FROM CityItem WHERE timeCreatedMillis > :timeInMills")
-//    List<CityItem> getAllPeopleWithFavoriteColor(long timeInMills);
-
+    Maybe<List<CityItem>> getAllCities();
 }

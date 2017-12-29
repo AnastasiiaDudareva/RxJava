@@ -1,4 +1,4 @@
-package com.ad.weather;
+package com.ad.weather.database;
 
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Delete;
@@ -6,7 +6,14 @@ import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.OnConflictStrategy;
 import android.arch.persistence.room.Query;
 
+import com.ad.weather.WeatherItem;
+
 import java.util.List;
+import java.util.Observable;
+
+import io.reactivex.Completable;
+import io.reactivex.Maybe;
+import io.reactivex.Single;
 
 
 /**
@@ -22,12 +29,12 @@ public interface WeatherDao {
     void insertAll(WeatherItem... weatherItems);
 
     @Delete
-    void delete(WeatherItem weatherItem);
+    int delete(WeatherItem weatherItem);
 
     @Query("SELECT * FROM WeatherItem")
-    List<WeatherItem> getAllWeather();
+    Maybe<List<WeatherItem>> getAllWeather();
 
-    @Query("SELECT * FROM WeatherItem WHERE cityItemId IS :cityItemId AND timeCreatedMillis > :timeInMills")
-    List<WeatherItem> getWeatherForCity(String cityItemId, long timeInMills);
+    @Query("SELECT * FROM WeatherItem WHERE cityItemId IS :cityItemId AND timeCreatedMillis > :timeInMills LIMIT 1")
+    Single<WeatherItem> getWeatherForCity(String cityItemId, long timeInMills);
 
 }
